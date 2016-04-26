@@ -21,6 +21,9 @@ nv.models.line = function() {
         , clipEdge = false // if true, masks lines within x and y scale
         , x //can be accessed via chart.xScale()
         , y //can be accessed via chart.yScale()
+        // Mirror(PF) Chart, Mirror Chart, PF Chart
+        , yAbove
+        , yBelow
         , interpolate = "linear" // controls the line interpolation
         , duration = 250
         , dispatch = d3.dispatch('elementClick', 'elementMouseover', 'elementMouseout', 'renderEnd')
@@ -38,7 +41,8 @@ nv.models.line = function() {
     // Private Variables
     //------------------------------------------------------------
 
-    var x0, y0 //used to store previous scales
+    // Mirror(PF) Chart, Mirror Chart, PF Chart
+    var x0, y0, y0Above, y0Below //used to store previous scales
         , renderWatch = nv.utils.renderWatch(dispatch, duration)
         ;
 
@@ -57,9 +61,15 @@ nv.models.line = function() {
             // Setup Scales
             x = scatter.xScale();
             y = scatter.yScale();
+            // Mirror(PF) Chart, Mirror Chart, PF Chart
+            yAbove = scatter.yAboveScale();
+            yBelow = scatter.yBelowScale();
 
             x0 = x0 || x;
             y0 = y0 || y;
+            // Mirror(PF) Chart, Mirror Chart, PF Chart
+            y0Above = y0Above || yAbove;
+            y0Below = y0Below || yBelow;
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('g.nv-wrap.nv-line').data([data]);
@@ -151,7 +161,14 @@ nv.models.line = function() {
                     .interpolate(interpolate)
                     .defined(defined)
                     .x(function(d,i) { return nv.utils.NaNtoZero(x0(getX(d,i))) })
-                    .y(function(d,i) { return nv.utils.NaNtoZero(y0(getY(d,i))) })
+                    .y(function(d,i) { // Mirror(PF) Chart, Mirror Chart, PF Chart
+                        if (d.position === 'above') {
+                            return nv.utils.NaNtoZero(y0Above(getY(d,i)))
+                        } else if (d.position === 'below') {
+                            return nv.utils.NaNtoZero(y0Below(getY(d,i)))
+                        }
+                        return nv.utils.NaNtoZero(y0(getY(d,i)))
+                    })
             );
 
             linePaths.watchTransition(renderWatch, 'line: linePaths')
@@ -160,12 +177,22 @@ nv.models.line = function() {
                     .interpolate(interpolate)
                     .defined(defined)
                     .x(function(d,i) { return nv.utils.NaNtoZero(x(getX(d,i))) })
-                    .y(function(d,i) { return nv.utils.NaNtoZero(y(getY(d,i))) })
+                    .y(function(d,i) { // Mirror(PF) Chart, Mirror Chart, PF Chart
+                        if (d.position === 'above') {
+                            return nv.utils.NaNtoZero(yAbove(getY(d,i)))
+                        } else if (d.position === 'below') {
+                            return nv.utils.NaNtoZero(yBelow(getY(d,i)))
+                        }
+                        return nv.utils.NaNtoZero(y(getY(d,i)))
+                    })
             );
 
             //store old scales for use in transitions on update
             x0 = x.copy();
             y0 = y.copy();
+            // Mirror(PF) Chart, Mirror Chart, PF Chart
+            y0Above = yAbove.copy();
+            y0Below = yBelow.copy();
         });
         renderWatch.renderEnd('line immediate');
         return chart;

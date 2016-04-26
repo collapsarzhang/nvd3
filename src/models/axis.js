@@ -19,6 +19,7 @@ nv.models.axis = function() {
         , isOrdinal = false
         , ticks = null
         , axisLabelDistance = 0
+        , axisLabelDistanceAlongAxis = 0
         , fontSize = undefined
         , duration = 250
         , dispatch = d3.dispatch('renderEnd')
@@ -89,7 +90,7 @@ nv.models.axis = function() {
                     axisLabel
                         .attr('text-anchor', 'middle')
                         .attr('y', 0)
-                        .attr('x', w/2);
+                        .attr('x', w/2 + axisLabelDistanceAlongAxis);
                     if (showMaxMin) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
@@ -123,7 +124,7 @@ nv.models.axis = function() {
                     var rotateLabelsRule = '';
                     if (rotateLabels%360) {
                         //Reset transform on ticks so textHeight can be calculated correctly
-                        xTicks.attr('transform', ''); 
+                        xTicks.attr('transform', '');
                         //Calculate the longest xTick width
                         xTicks.each(function(d,i){
                             var box = this.getBoundingClientRect();
@@ -161,7 +162,7 @@ nv.models.axis = function() {
                     axisLabel
                         .attr('text-anchor', 'middle')
                         .attr('y', xLabelMargin)
-                        .attr('x', w/2);
+                        .attr('x', w/2 + axisLabelDistanceAlongAxis);
                     if (showMaxMin) {
                         //if (showMaxMin && !isOrdinal) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
@@ -196,8 +197,8 @@ nv.models.axis = function() {
                     axisLabel
                         .style('text-anchor', rotateYLabel ? 'middle' : 'begin')
                         .attr('transform', rotateYLabel ? 'rotate(90)' : '')
-                        .attr('y', rotateYLabel ? (-Math.max(margin.right, width) + 12) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
-                        .attr('x', rotateYLabel ? (d3.max(scale.range()) / 2) : axis.tickPadding());
+                        .attr('y', rotateYLabel ? (-Math.max(margin.right, width) + 12 - (axisLabelDistance || 0)) : -10) //TODO: consider calculating this based on largest tick width... OR at least expose this on chart
+                        .attr('x', rotateYLabel ? (d3.max(scale.range()) / 2) - axisLabelDistanceAlongAxis : axis.tickPadding() - axisLabelDistanceAlongAxis);
                     if (showMaxMin) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
@@ -241,7 +242,7 @@ nv.models.axis = function() {
                         .style('text-anchor', rotateYLabel ? 'middle' : 'end')
                         .attr('transform', rotateYLabel ? 'rotate(-90)' : '')
                         .attr('y', rotateYLabel ? (-Math.max(margin.left, width) + 25 - (axisLabelDistance || 0)) : -10)
-                        .attr('x', rotateYLabel ? (-d3.max(scale.range()) / 2) : -axis.tickPadding());
+                        .attr('x', rotateYLabel ? (-d3.max(scale.range()) / 2) + axisLabelDistanceAlongAxis : -axis.tickPadding() + axisLabelDistanceAlongAxis);
                     if (showMaxMin) {
                         axisMaxMin = wrap.selectAll('g.nv-axisMaxMin')
                             .data(scale.domain());
@@ -331,9 +332,9 @@ nv.models.axis = function() {
                     and the arithmetic trick below solves that.
                     */
                     return !parseFloat(Math.round(d * 100000) / 1000000) && (d !== undefined)
-                }) 
+                })
                 .classed('zero', true);
-            
+
             //store old scales for use in transitions on update
             scale0 = scale.copy();
 
@@ -364,6 +365,7 @@ nv.models.axis = function() {
         ticks:             {get: function(){return ticks;}, set: function(_){ticks=_;}},
         width:             {get: function(){return width;}, set: function(_){width=_;}},
         fontSize:          {get: function(){return fontSize;}, set: function(_){fontSize=_;}},
+        axisLabelDistanceAlongAxis: {get: function(){return axisLabelDistanceAlongAxis;}, set: function(_){axisLabelDistanceAlongAxis=_;}},
 
         // options that require extra logic in the setter
         margin: {get: function(){return margin;}, set: function(_){

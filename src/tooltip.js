@@ -36,6 +36,7 @@ nv.models.tooltip = function() {
         ,   duration = 100 // Tooltip movement duration, in ms.
         ,   headerEnabled = true // If is to show the tooltip header.
         ,   nvPointerEventsClass = "nv-pointer-events-none" // CSS class to specify whether element should not have mouse events.
+        ,   enableComplexValueFormatter = false
     ;
 
     /*
@@ -54,6 +55,9 @@ nv.models.tooltip = function() {
 
     // Format function for the tooltip values column.
     var valueFormatter = function(d, i) {
+        if (enableComplexValueFormatter) {
+            return d.value; // Mirror(PF) Chart, Mirror Chart, PF Chart
+        }
         return d;
     };
 
@@ -109,7 +113,12 @@ nv.models.tooltip = function() {
 
         trowEnter.append("td")
             .classed("value",true)
-            .html(function(p, i) { return valueFormatter(p.value, i) });
+            .html(function(p, i) {
+                if (enableComplexValueFormatter) { // Mirror(PF) Chart, Mirror Chart, PF Chart
+                    return valueFormatter(p, i)
+                }
+                return valueFormatter(p.value, i)
+            });
 
         trowEnter.selectAll("td").each(function(p) {
             if (p.highlight) {
@@ -300,6 +309,7 @@ nv.models.tooltip = function() {
         contentGenerator: {get: function(){return contentGenerator;}, set: function(_){contentGenerator=_;}},
         valueFormatter: {get: function(){return valueFormatter;}, set: function(_){valueFormatter=_;}},
         headerFormatter: {get: function(){return headerFormatter;}, set: function(_){headerFormatter=_;}},
+        enableComplexValueFormatter: {get: function(){return enableComplexValueFormatter;}, set: function(_){enableComplexValueFormatter=_;}},
         keyFormatter: {get: function(){return keyFormatter;}, set: function(_){keyFormatter=_;}},
         headerEnabled: {get: function(){return headerEnabled;}, set: function(_){headerEnabled=_;}},
         position: {get: function(){return position;}, set: function(_){position=_;}},
